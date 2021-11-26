@@ -17,6 +17,18 @@ function checkAccountExistsByCpf(req, res, next) {
   return next()
 }
 
+function getBalance(statement) {
+  const balance = statement.reduce((acc, statement) => {
+    if (statement.type === 'credit') {
+      return acc + statement.amount
+    } else {
+      return acc - statement.amount
+    }
+  }, 0)
+
+  return balance
+}
+
 app.post('/account', (req, res) => {
   const { cpf, name } = req.body
 
@@ -53,4 +65,23 @@ app.post('/deposit', checkAccountExistsByCpf, (req, res) => {
 
 app.listen(3333, () => {
   console.log('Server is running 🚀')
+})
+
+app.post('/withdraw', checkAccountExistsByCpf, (req, res) => {
+  const { amount } = req.body
+  const { customer } = req
+
+  const balance = getBalance(customer.statement)
+  if (balance < amount) {
+    return res.status(400).json({ error: 'Insufficient funds!' })
+  }
+
+  const statementOperation = {
+    amount,
+    created_at: new Date(),
+    type: 'debit',
+  }
+
+  customer.statement.push(statementOperation)
+  return res.status(201).send()
 })
