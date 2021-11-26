@@ -6,7 +6,7 @@ const customers = []
 app.use(express.json())
 
 function checkAccountExistsByCpf(req, res, next) {
-  const { cpf } = req.params
+  const { cpf } = req.headers
   const customer = customers.find((customer) => customer.cpf === cpf)
 
   if (!customer) {
@@ -31,9 +31,24 @@ app.post('/account', (req, res) => {
   return res.status(201).send()
 })
 
-app.get('/statement/:cpf', checkAccountExistsByCpf, (req, res) => {
+app.get('/statement', checkAccountExistsByCpf, (req, res) => {
   const { customer } = req
   return res.json(customer.statement)
+})
+
+app.post('/deposit', checkAccountExistsByCpf, (req, res) => {
+  const { description, amount } = req.body
+  const { customer } = req
+
+  const statementOperation = {
+    description,
+    amount,
+    created_at: new Date(),
+    type: 'credit',
+  }
+
+  customer.statement.push(statementOperation)
+  return res.status(201).send()
 })
 
 app.listen(3333, () => {
