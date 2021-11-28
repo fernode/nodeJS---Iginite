@@ -111,3 +111,13 @@ app.get('/account', checkAccountExistsByCpf, (req, res) => {
   const { customer } = req
   return res.json(customer)
 })
+
+app.delete('/account', checkAccountExistsByCpf, (req, res) => {
+  const { customer } = req
+
+  const customerIndex = customers.findIndex(
+    (customer) => customer.id === customer.id
+  )
+  customers.splice(customerIndex, 1)
+  return res.status(200).json(customers)
+})
